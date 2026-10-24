@@ -1,0 +1,15 @@
+import { describe, expect, it } from 'vitest';
+import { createGame, placeTile, connectedGroup, CELL_COUNT, type GameState, type Tile } from './engine';
+function fixture(board:(Tile|null)[], grade=1):GameState{return {...createGame(123),board,hand:[grade,2,3],score:0,maxGrade:0,maxChain:0,turns:0,gameState:'playing'};}
+const tile=(id:number,grade:number):Tile=>({id,grade,charge:0});
+
+describe('Prismerge deterministic engine',()=>{
+  it('creates same hand and RNG state for same seed',()=>{expect(createGame(12345)).toEqual(createGame(12345));expect(createGame(12345)).not.toEqual(createGame(54321));});
+  it('finds orthogonal connections but not diagonals',()=>{const board:(Tile|null)[]=Array(CELL_COUNT).fill(null);board[0]=tile(1,1);board[1]=tile(2,1);board[8]=tile(3,1);expect(connectedGroup(board,0,1)).toEqual(expect.arrayContaining([0,1]));expect(connectedGroup(board,0,1)).toHaveLength(2);});
+  it('rejects invalid slots and occupied cells without changing state',()=>{const board:(Tile|null)[]=Array(CELL_COUNT).fill(null);board[0]=tile(1,1);const s=fixture(board);expect(placeTile(s,9,1).error).toBeTruthy();expect(placeTile(s,0,0).error).toBeTruthy();expect(s.board[0]?.id).toBe(1);});
+  it('merges three matching tiles at the placed cell and refills only selected hand slot',()=>{const board:(Tile|null)[]=Array(CELL_COUNT).fill(null);board[0]=tile(1,1);board[14]=tile(2,1);const s=fixture(board);s.hand[1]=1;const before=[...s.hand];const out=placeTile(s,1,7);expect(out.state.board[7]?.grade).toBe(2);expect(out.state.board[0]).toBeNull();expect(out.state.board[14]).toBeNull();expect(out.events.filter(e=>e.type==='merge')).toHaveLength(1);expect(out.state.hand[0]).toBe(before[0]);expect(out.state.hand[2]).toBe(before[2]);expect(out.state.bag).toHaveLength(s.bag.length-1);});
+  it('does not merge groups of only two',()=>{const board:(Tile|null)[]=Array(CELL_COUNT).fill(null);board[0]=tile(1,1);const out=placeTile(fixture(board),0,1);expect(out.state.board[1]?.grade).toBe(1);expect(out.events.filter(e=>e.type==='merge')).toHaveLength(0);});
+  it('resolves a chain at the same cell and scores the second merge with multiplier',()=>{const board:(Tile|null)[]=Array(CELL_COUNT).fill(null);board[17]=tile(1,1);board[31]=tile(2,1);board[23]=tile(3,2);board[25]=tile(4,2);const out=placeTile(fixture(board),0,24);expect(out.events.filter(e=>e.type==='merge')).toHaveLength(2);expect(out.state.board[24]?.grade).toBe(3);expect(out.state.maxChain).toBe(2);});
+  it('removes a max-grade group without spawning a result tile',()=>{const board:(Tile|null)[]=Array(CELL_COUNT).fill(null);board[0]=tile(1,8);board[14]=tile(2,8);const out=placeTile(fixture(board,8),0,7);expect(out.state.board[7]).toBeNull();expect(out.state.score).toBeGreaterThanOrEqual(500);});
+  it('ends only when the board is full after merges resolve',()=>{const board:(Tile|null)[]=Array.from({length:CELL_COUNT},(_,i)=>tile(i+1,((Math.floor(i/7)+i%7)%2)+1));board[24]=null;const out=placeTile(fixture(board),0,24);expect(out.state.gameState).toBe('gameOver');expect(out.events.at(-1)?.type).toBe('gameOver');});
+});

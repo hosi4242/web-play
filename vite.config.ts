@@ -5,7 +5,7 @@ const root = fileURLToPath(new URL('.', import.meta.url));
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const siteUrl = (env.SITE_URL || 'https://example.workers.dev').replace(/\/$/, '');
+  const siteUrl = (env.SITE_URL || 'https://web-play.hosi4242.workers.dev').replace(/\/$/, '');
   const robotsMode = env.ROBOTS_MODE || (mode === 'production' ? 'index' : 'noindex');
   return {
     define: {

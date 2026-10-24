@@ -1,13 +1,13 @@
 import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-const mode = process.argv[2] || 'beta';
+const mode = process.argv[2] || 'production';
 const envPath = `.env.${mode}`;
 const env = {};
 if (existsSync(envPath)) for (const line of (await readFile(envPath, 'utf8')).split(/\r?\n/)) {
   const m = line.match(/^\s*([A-Z_]+)\s*=\s*(.*?)\s*$/);
   if (m) env[m[1]] = m[2].replace(/^['"]|['"]$/g, '');
 }
-const siteUrl = (process.env.SITE_URL || env.SITE_URL || 'https://example.workers.dev').replace(/\/$/, '');
+const siteUrl = (process.env.SITE_URL || env.SITE_URL || 'https://web-play.hosi4242.workers.dev').replace(/\/$/, '');
 const robotsMode = process.env.ROBOTS_MODE || env.ROBOTS_MODE || (mode === 'production' ? 'index' : 'noindex');
 await mkdir('dist', { recursive: true });
 const robots = robotsMode === 'index'

@@ -1,0 +1,11 @@
+{
+  "name": "toolmingle-play", "private": true, "version": "0.1.0", "type": "module",
+  "scripts": {
+    "dev": "vite", "build": "tsc --noEmit && vite build --mode beta && node scripts/gen-seo.mjs beta",
+    "test": "vitest run", "test:watch": "vitest", "preview": "vite preview",
+    "build:production": "tsc --noEmit && vite build --mode production && node scripts/gen-seo.mjs production",
+    "deploy:beta": "npm run build && wrangler deploy",
+    "deploy:production": "npm run build:production && wrangler deploy --name toolmingle-play"
+  },
+  "devDependencies": {"@types/node":"^22.10.0","typescript":"^5.7.2","vite":"^6.0.5","vitest":"^2.1.8","wrangler":"^4.0.0"}
+}

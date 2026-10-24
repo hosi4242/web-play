@@ -11,8 +11,8 @@
     "test:watch": "vitest",
     "preview": "vite preview",
     "build:production": "npm run build",
-    "deploy:beta": "npm run build:beta && wrangler deploy",
-    "deploy:production": "npm run build && wrangler deploy"
+    "deploy:beta": "npm run build:beta && wrangler deploy --name toolmingle-play-beta",
+    "deploy:production": "npm run build && wrangler deploy --name web-play"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

@@ -14,6 +14,13 @@ export const FALSE_START_MS = 100;
 export const WAIT_MIN_MS = 800;
 export const WAIT_MAX_MS = 2_500;
 export const ROUND_GAP_MS = 300;
+
+/** Select the cue for a round; Choice mode deliberately alternates by random half-probability. */
+export function chooseSignalCue(mode: ZapMode, random = Math.random()): SignalCue {
+  if (mode === 'fake' && random < 0.32) return 'decoy';
+  if (mode === 'choice') return random < 0.5 ? 'mint' : 'violet';
+  return 'normal';
+}
 export const initialZapState = (bestScore = 0, mode: ZapMode = 'classic'): ZapState => ({ phase:'ready', score:0, bestScore, correctTaps:0, falseStarts:0, misses:0, reactionTimes:[], streak:0, startedAt:null, elapsedBeforePause:0, signalShownAt:null, feedback:'Ready when you are.', feedbackKind:'neutral', mode, cue:'normal' });
 export function speedBonus(rt: number): number { return Math.round(50 * Math.max(0, Math.min(1, (500 - rt) / (500 - 150)))); }
 export function streakMultiplier(streakAfterSuccess: number): number { return 1 + Math.min(.5, .05 * Math.max(0, streakAfterSuccess - 1)); }

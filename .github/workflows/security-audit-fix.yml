@@ -62,8 +62,13 @@ jobs:
           }
           NODE
 
-      - name: Apply compatible fixes only (never force major upgrades)
-        run: npm audit fix --no-fund
+      - name: Upgrade vulnerable direct build/test tools to reviewed fixed versions
+        run: npm install --save-dev vite@6.4.5 vitest@4.1.12 wrangler@4.152.0 --no-fund
+
+      - name: Apply additional compatible transitive fixes (never force)
+        shell: bash
+        run: |
+          npm audit fix --no-fund || echo "Some advisories require manual review; continuing to tests without --force."
 
       - name: Install the exact updated dependency tree
         run: npm ci --no-audit --no-fund

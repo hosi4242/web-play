@@ -3,6 +3,8 @@ name: Dependency security audit and safe fixes
 on:
   push:
     branches: [security-audit-fixes]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:

@@ -1,4 +1,5 @@
 export const DEFAULT_BOARD_SIZE = 7;
+export const BOARD_SIZE = DEFAULT_BOARD_SIZE;
 export const BOARD_SIZES = [5, 7, 10] as const;
 export const CELL_COUNT = DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE;
 export const MAX_GRADE = 8;

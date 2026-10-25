@@ -6,21 +6,24 @@ const root = fileURLToPath(new URL('.', import.meta.url));
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const siteUrl = (env.SITE_URL || 'https://example.workers.dev').replace(/\/+$/, '');
-  const robotsMode = env.ROBOTS_MODE || (mode === 'production' ? 'index' : 'noindex');
+  const defaultSiteUrl = mode === 'production'
+    ? 'https://play.toolmingle.dev'
+    : 'https://web-play.hosi4242.workers.dev';
+  const siteUrl = (process.env.SITE_URL || env.SITE_URL || defaultSiteUrl).replace(/\/+$/, '');
+  const robotsMode = process.env.ROBOTS_MODE || env.ROBOTS_MODE || (mode === 'production' ? 'index' : 'noindex');
 
   return {
     define: {
       __SITE_URL__: JSON.stringify(siteUrl),
       __ROBOTS_MODE__: JSON.stringify(robotsMode),
-      __ADS_ENABLED__: JSON.stringify(env.ADS_ENABLED || 'false')
+      __ADS_ENABLED__: JSON.stringify(process.env.ADS_ENABLED || env.ADS_ENABLED || 'false')
     },
     plugins: [{
       name: 'toolmingle-seo-meta',
       transformIndexHtml(html: string, ctx: IndexHtmlTransformContext) {
         const path = (ctx.path || '/').split('?')[0];
         const normalizedPath = path.replace(/\/index\.html$/, '/');
-        const canonicalPath = normalizedPath.endsWith('/') ? normalizedPath : normalizedPath + '/';
+        const canonicalPath = normalizedizedPath(normalizedPath);
         const canonical = new URL(canonicalPath, siteUrl + '/').toString();
         const robots = robotsMode === 'index' ? 'index,follow' : 'noindex,nofollow';
         const title = html.match(/<title>([\s\S]*?)<\/title>/i)?.[1]?.trim() || 'Toolmingle Play';
@@ -80,3 +83,7 @@ export default defineConfig(({ mode }) => {
     }
   };
 });
+
+function normalizedizedPath(path: string): string {
+  return path.endsWith('/') ? path : path + '/';
+}

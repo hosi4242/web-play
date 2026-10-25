@@ -4,7 +4,7 @@ on:
   push:
     branches: [security-audit-fixes]
   pull_request:
-    branches: [main]
+    branches: [seo-technical-review]
   workflow_dispatch:
 
 permissions:

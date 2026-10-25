@@ -8,6 +8,7 @@ export interface ZapState {
   mode: ZapMode; cue: SignalCue;
 }
 export const SESSION_MS = 30_000;
+export const SESSION_OPTIONS_MS = [30_000, 60_000, 90_000] as const;
 export const SIGNAL_TIMEOUT_MS = 1_500;
 export const FALSE_START_MS = 100;
 export const WAIT_MIN_MS = 800;

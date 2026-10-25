@@ -21,3 +21,35 @@
 
 /* Zapdash progress and mode extensions */
 .controls-panel{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 16px}.controls-panel .control-group{display:flex;align-items:center;gap:10px}.controls-panel select{min-height:42px;border:1px solid #40516e;border-radius:12px;background:#0d1728;color:#edf2ff;padding:8px 30px 8px 10px;font:inherit}.progress-chart{margin-top:14px;padding:14px 8px 8px;border-radius:14px;background:#0d1728;border:1px solid #253650}.chart-bars{height:128px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}.chart-day{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;font-size:.72rem;color:var(--muted)}.chart-bar-wrap{height:82px;width:100%;display:flex;align-items:flex-end;justify-content:center}.chart-bar{width:min(24px,80%);min-height:0;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,var(--accent),#4eaa9b);transition:height .2s ease}.chart-day small{font-size:.68rem;color:#edf2ff}.reaction-arena.decoy{background:#42252e;border-color:#ff8f9c}.reaction-arena.decoy .signal-symbol{background:#ff8f9c;color:#2c1119;border-color:#ffd0d5}.reaction-arena.violet-signal{background:#2b2450;border-color:#b4a5ff}.reaction-arena.violet-signal .signal-symbol{background:#b4a5ff;color:#21183d;border-color:#e0d9ff}@media(max-width:760px){.controls-panel,.controls-panel .control-group{width:100%;align-items:stretch;flex-direction:column}.controls-panel select{width:100%}.chart-bars{gap:4px}.chart-bar-wrap{height:72px}}
+
+/* Zapdash: fixed central controls and edge-mounted game controls */
+.reaction-arena { position: relative; min-height: 390px; padding: 22px 18px 132px; justify-content: flex-start; gap: 10px; }
+.reaction-arena .signal-symbol { flex: 0 0 auto; margin-top: 18px; }
+.reaction-arena #arena-title { margin: 2px 0 0; min-height: 1.8em; }
+.reaction-arena #arena-copy { min-height: 3em; max-width: 520px; }
+.reaction-arena .arena-actions { position: absolute; left: 50%; top: calc(100% - 72px); transform: translate(-50%, -50%); width: calc(100% - 32px); display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: nowrap; }
+.reaction-arena .arena-actions[hidden] { display: none; }
+.reaction-arena .arena-actions button { min-height: 104px; flex: 1 1 0; max-width: 240px; font-size: clamp(1rem, 3.3vw, 1.3rem); touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.reaction-arena .arena-actions #start { min-height: 58px; flex: 0 1 auto; max-width: 100%; }
+.reaction-arena .arena-actions #tap { width: min(100%, 320px); min-height: 104px; font-size: 1.35rem; }
+.reaction-arena .arena-edge { position: absolute; z-index: 2; top: 12px; min-height: 40px; padding: 8px 12px; font-size: .84rem; }
+.reaction-arena .arena-restart { left: 12px; }
+.reaction-arena .arena-pause { right: 12px; }
+.reaction-arena .arena-edge[hidden] { display: none; }
+#duration { min-height: 42px; border: 1px solid #40516e; border-radius: 12px; background: #0d1728; color: #edf2ff; padding: 8px 28px 8px 10px; font: inherit; }
+@media (max-width: 760px) {
+  .reaction-arena { min-height: 370px; padding: 18px 12px 126px; }
+  .reaction-arena .signal-symbol { width: 88px; height: 88px; border-radius: 24px; margin-top: 20px; }
+  .reaction-arena .arena-actions { width: calc(100% - 24px); top: calc(100% - 66px); gap: 10px; }
+  .reaction-arena .arena-actions button { min-height: 100px; padding: 12px 8px; border-radius: 16px; }
+  .reaction-arena .arena-actions #tap { min-height: 100px; }
+  .reaction-arena .arena-edge { top: 10px; }
+  .reaction-arena .arena-restart { left: 10px; }
+  .reaction-arena .arena-pause { right: 10px; }
+  .controls-panel .duration-control { width: 100%; }
+  #duration { width: 100%; }
+}
+@media (max-width: 380px) {
+  .reaction-arena .arena-actions { gap: 7px; width: calc(100% - 16px); }
+  .reaction-arena .arena-actions button { padding: 10px 5px; font-size: .96rem; }
+}

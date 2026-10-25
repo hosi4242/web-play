@@ -1,6 +1,6 @@
 import { mount } from '../shared/layout';
 import { safeRead, safeWrite, safeRemove } from '../shared/storage';
-import { createGame, placeTile, BOARD_SIZES, DEFAULT_BOARD_SIZE, type GameState, type Tile } from './engine';
+import { createGame, placeTile, BOARD_SIZES, type GameState, type Tile } from './engine';
 import '../shared/styles.css';
 
 interface RunRecord { score: number; turns: number; maxGrade: number; maxChain: number; date: string; boardSize: number; daily: boolean }
@@ -16,9 +16,12 @@ function isSave(x:unknown):x is Save{if(!x||typeof x!=='object')return false;con
 const loaded=safeRead<Save>('prismerge',isSave);
 let bestScore=loaded?.bestScore??0,bestGrade=loaded?.bestGrade??0,maxChain=loaded?.maxChain??0;
 let game:GameState=normalizeGame(loaded?.game)?.gameState==='playing'?normalizeGame(loaded?.game)!:createGame();
-let undoGame:GameState|null=normalizeGame(loaded?.undoGame);\nlet undoHistoryLength=Number.isInteger(loaded?.undoHistoryLength)?loaded!.undoHistoryLength!:history.length;\nlet undoDailyDone:string[]=Array.isArray(loaded?.undoDailyDone)?loaded!.undoDailyDone!.filter(x=>typeof x==='string'):[];\nlet dailyMode=loaded?.dailyMode===true;
 let history:RunRecord[]=Array.isArray(loaded?.history)?loaded!.history!.filter(r=>r&&Number.isFinite(r.score)&&Number.isInteger(r.turns)&&Number.isInteger(r.boardSize)).slice(-50):[];
 let dailyDone:string[]=Array.isArray(loaded?.dailyDone)?loaded!.dailyDone!.filter(x=>typeof x==='string').slice(-90):[];
+let undoGame:GameState|null=normalizeGame(loaded?.undoGame);
+let undoHistoryLength=Number.isInteger(loaded?.undoHistoryLength)?loaded!.undoHistoryLength!:history.length;
+let undoDailyDone:string[]=Array.isArray(loaded?.undoDailyDone)?loaded!.undoDailyDone!.filter(x=>typeof x==='string'):[];
+let dailyMode=loaded?.dailyMode===true;
 let selectedSlot:number|null=null,lastMergeCell:number|null=null,locked=false;
 let messageText=loaded?.game&&normalizeGame(loaded.game)?.gameState==='playing'?'Welcome back — your game was restored.':'Choose a tile, then choose an empty cell.';
 const $=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
@@ -45,6 +48,7 @@ mount(`<div class="page-head"><div><div class="eyebrow">Strategy puzzle · 1–4
 $('new-game').addEventListener('click',()=>startGame(game.boardSize));$('board-size').addEventListener('change',()=>startGame(Number($<HTMLSelectElement>('board-size').value)));$('daily').addEventListener('click',()=>startGame(game.boardSize,dailySeed(today(),game.boardSize),true));
 $('undo').addEventListener('click',()=>{if(!undoGame||locked)return;game=structuredClone(undoGame);undoGame=null;history=history.slice(0,undoHistoryLength);dailyDone=[...undoDailyDone];selectedSlot=null;messageText='Last move undone. Your board, hand, score and tile draw are restored.';save();render();});
 $('rules').addEventListener('click',()=>{const guide=$<HTMLElement>('rules-guide');guide.hidden=!guide.hidden;if(!guide.hidden)guide.scrollIntoView({behavior:'smooth',block:'nearest'});});
-$('share').addEventListener('click',async()=>{const text=`Prismerge · Score ${game.score} · Best ${bestScore} · Board ${game.boardSize}×${game.boardSize} · Highest grade ${Math.max(bestGrade,game.maxGrade)} · Longest chain ${Math.max(maxChain,game.maxChain)}\nPlay: ${location.origin}/prismerge/`;try{await navigator.clipboard.writeText(text);messageText='Score summary copied. Share it with your friends!';}catch{const box=document.createElement('textarea');box.value=text;box.setAttribute('aria-label','Share score text');document.body.append(box);box.select();const copied=document.execCommand('copy');box.remove();messageText=copied?'Score summary copied. Share it with your friends!':'Copy this score summary manually: '+text;}render();});
+$('share').addEventListener('click',async()=>{const text=`Prismerge · Score ${game.score} · Best ${bestScore} · Board ${game.boardSize}×${game.boardSize} · Highest grade ${Math.max(bestGrade,game.maxGrade)} · Longest chain ${Math.max(maxChain,game.maxChain)}
+Play: ${location.origin}/prismerge/`;try{await navigator.clipboard.writeText(text);messageText='Score summary copied. Share it with your friends!';}catch{const box=document.createElement('textarea');box.value=text;box.setAttribute('aria-label','Share score text');document.body.append(box);box.select();const copied=document.execCommand('copy');box.remove();messageText=copied?'Score summary copied. Share it with your friends!':'Copy this score summary manually: '+text;}render();});
 $('reset-records').addEventListener('click',()=>{if(!confirm('Reset your saved records, history and current game? This cannot be undone.'))return;bestScore=0;bestGrade=0;maxChain=0;history=[];dailyDone=[];game=createGame();undoGame=null;selectedSlot=null;dailyMode=false;safeRemove('prismerge');messageText='Records cleared. A fresh game is ready.';save();render();});
 render();

@@ -1,0 +1,136 @@
+name: Dependency security audit and safe fixes
+
+on:
+  push:
+    branches: [security-audit-fixes]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit-and-fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out isolated security branch
+        uses: actions/checkout@v4
+        with:
+          ref: security-audit-fixes
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Generate reproducible lockfile
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Record baseline audit report
+        id: baseline
+        shell: bash
+        run: |
+          npm audit --json > audit-before.json || true
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const a = JSON.parse(fs.readFileSync('audit-before.json', 'utf8'));
+          const v = a.metadata?.vulnerabilities ?? {};
+          const summary = {
+            total: v.total ?? 0,
+            info: v.info ?? 0,
+            low: v.low ?? 0,
+            moderate: v.moderate ?? 0,
+            high: v.high ?? 0,
+            critical: v.critical ?? 0
+          };
+          console.log('BASELINE_SUMMARY=' + JSON.stringify(summary));
+          for (const [name, item] of Object.entries(a.vulnerabilities ?? {})) {
+            console.log(JSON.stringify({
+              package: name,
+              severity: item.severity,
+              direct: item.isDirect,
+              installed: item.range,
+              fixAvailable: item.fixAvailable,
+              via: (item.via ?? []).map(v => typeof v === 'string' ? v : {
+                title: v.title, url: v.url, range: v.range, severity: v.severity
+              }),
+              effects: item.effects,
+              nodes: item.nodes
+            }));
+          }
+          NODE
+
+      - name: Apply compatible fixes only (never force major upgrades)
+        run: npm audit fix --no-fund
+
+      - name: Install the exact updated dependency tree
+        run: npm ci --no-audit --no-fund
+
+      - name: Run game engine tests
+        run: npm test
+
+      - name: Run TypeScript and beta build checks
+        run: npm run build
+
+      - name: Run production build and SEO verification
+        run: npm run build:production
+
+      - name: Record final audit report
+        if: always()
+        shell: bash
+        run: |
+          npm audit --json > audit-after.json || true
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const a = JSON.parse(fs.readFileSync('audit-after.json', 'utf8'));
+          const v = a.metadata?.vulnerabilities ?? {};
+          console.log('FINAL_SUMMARY=' + JSON.stringify({
+            total: v.total ?? 0,
+            info: v.info ?? 0,
+            low: v.low ?? 0,
+            moderate: v.moderate ?? 0,
+            high: v.high ?? 0,
+            critical: v.critical ?? 0
+          }));
+          for (const [name, item] of Object.entries(a.vulnerabilities ?? {})) {
+            console.log(JSON.stringify({
+              package: name,
+              severity: item.severity,
+              direct: item.isDirect,
+              range: item.range,
+              fixAvailable: item.fixAvailable,
+              via: (item.via ?? []).map(v => typeof v === 'string' ? v : {
+                title: v.title, url: v.url, range: v.range, severity: v.severity
+              }),
+              effects: item.effects,
+              nodes: item.nodes
+            }));
+          }
+          NODE
+
+      - name: Commit lockfile and safe package updates on this branch
+        if: success()
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          if git diff --cached --quiet; then
+            echo "No dependency manifest or lockfile changes to commit."
+          else
+            git commit -m "Fix compatible dependency security advisories"
+            git push origin HEAD:security-audit-fixes
+          fi
+
+      - name: Upload audit reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-security-audit
+          path: |
+            audit-before.json
+            audit-after.json
+            package-lock.json
+          if-no-files-found: warn
+          retention-days: 14

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createGame, placeTile, connectedGroup, CELL_COUNT, type GameState, type Tile } from './engine';
+import { createGame, placeTile, connectedGroup, CELL_COUNT, BOARD_SIZES, type GameState, type Tile } from './engine';
 function fixture(board:(Tile|null)[], grade=1):GameState{return {...createGame(123),board,hand:[grade,2,3],score:0,maxGrade:0,maxChain:0,turns:0,gameState:'playing'};}
 const tile=(id:number,grade:number):Tile=>({id,grade,charge:0});
 
@@ -12,4 +12,33 @@ describe('Prismerge deterministic engine',()=>{
   it('resolves a chain at the same cell and scores the second merge with multiplier',()=>{const board:(Tile|null)[]=Array(CELL_COUNT).fill(null);board[17]=tile(1,1);board[31]=tile(2,1);board[23]=tile(3,2);board[25]=tile(4,2);const out=placeTile(fixture(board),0,24);expect(out.events.filter(e=>e.type==='merge')).toHaveLength(2);expect(out.state.board[24]?.grade).toBe(3);expect(out.state.maxChain).toBe(2);});
   it('removes a max-grade group without spawning a result tile',()=>{const board:(Tile|null)[]=Array(CELL_COUNT).fill(null);board[0]=tile(1,8);board[14]=tile(2,8);const out=placeTile(fixture(board,8),0,7);expect(out.state.board[7]).toBeNull();expect(out.state.score).toBeGreaterThanOrEqual(500);});
   it('ends only when the board is full after merges resolve',()=>{const board:(Tile|null)[]=Array.from({length:CELL_COUNT},(_,i)=>tile(i+1,((Math.floor(i/7)+i%7)%2)+1));board[24]=null;const out=placeTile(fixture(board),0,24);expect(out.state.gameState).toBe('gameOver');expect(out.events.at(-1)?.type).toBe('gameOver');});
+});
+
+describe('configurable Prismerge boards',()=>{
+  it('creates valid deterministic boards in all supported sizes',()=>{
+    for(const size of BOARD_SIZES){
+      const game=createGame(2468,0,size);
+      expect(game.boardSize).toBe(size);
+      expect(game.board).toHaveLength(size*size);
+      expect(game).toEqual(createGame(2468,0,size));
+      expect(game.hand).toHaveLength(3);
+    }
+  });
+  it('places tiles correctly on a 5x5 and 10x10 board',()=>{
+    for(const size of [5,10]){
+      const game=createGame(1357,0,size);
+      const cell=size*size-1;
+      const out=placeTile(game,0,cell);
+      expect(out.error).toBeUndefined();
+      expect(out.state.board).toHaveLength(size*size);
+      expect(out.state.board[cell]).not.toBeNull();
+      expect(out.state.boardSize).toBe(size);
+    }
+  });
+  it('rejects out-of-range board cells without changing the board',()=>{
+    const game=createGame(123,0,5);
+    expect(placeTile(game,0,25).error).toBeTruthy();
+    expect(game.board).toHaveLength(25);
+    expect(game.board.every(tile=>tile===null)).toBe(true);
+  });
 });

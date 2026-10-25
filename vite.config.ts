@@ -21,9 +21,9 @@ export default defineConfig(({ mode }) => {
     plugins: [{
       name: 'toolmingle-seo-meta',
       transformIndexHtml(html: string, ctx: IndexHtmlTransformContext) {
-        const path = (ctx.path || '/').split('?')[0];
-        const normalizedPath = path.replace(/\/index\.html$/, '/');
-        const canonicalPath = normalizedizedPath(normalizedPath);
+        const rawPath = (ctx.path || '/').split('?')[0];
+        const path = rawPath.replace(/\/index\.html$/, '/');
+        const canonicalPath = path.endsWith('/') ? path : path + '/';
         const canonical = new URL(canonicalPath, siteUrl + '/').toString();
         const robots = robotsMode === 'index' ? 'index,follow' : 'noindex,nofollow';
         const title = html.match(/<title>([\s\S]*?)<\/title>/i)?.[1]?.trim() || 'Toolmingle Play';
@@ -83,7 +83,3 @@ export default defineConfig(({ mode }) => {
     }
   };
 });
-
-function normalizedizedPath(path: string): string {
-  return path.endsWith('/') ? path : path + '/';
-}

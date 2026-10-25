@@ -65,6 +65,11 @@ jobs:
       - name: Upgrade vulnerable direct build/test tools to reviewed fixed versions
         run: npm install --save-dev vite@6.4.5 vitest@4.1.12 wrangler@4.152.0 --no-fund
 
+      - name: Pin patched undici for Wrangler's Miniflare dependency chain
+        run: |
+          npm pkg set 'overrides.undici=^7.30.1'
+          npm install --no-fund
+
       - name: Apply additional compatible transitive fixes (never force)
         shell: bash
         run: |

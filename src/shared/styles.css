@@ -29,6 +29,7 @@
 .reaction-arena #arena-copy { min-height: 3em; max-width: 520px; }
 .reaction-arena .arena-actions { position: absolute; left: 50%; top: calc(100% - 72px); transform: translate(-50%, -50%); width: calc(100% - 32px); display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: nowrap; }
 .reaction-arena .arena-actions[hidden] { display: none; }
+.reaction-arena .arena-actions button[hidden] { display: none; }
 .reaction-arena .arena-actions button { min-height: 104px; flex: 1 1 0; max-width: 240px; font-size: clamp(1rem, 3.3vw, 1.3rem); touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 .reaction-arena .arena-actions #start { min-height: 58px; flex: 0 1 auto; max-width: 100%; }
 .reaction-arena .arena-actions #tap { width: min(100%, 320px); min-height: 104px; font-size: 1.35rem; }
